@@ -1,10 +1,5 @@
 package workers_chain
 
-type Manager interface {
-	Channel
-	Interrupt()
-}
-
 type managerImpl struct {
 	w worker
 }

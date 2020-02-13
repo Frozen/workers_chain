@@ -15,3 +15,8 @@ type Chain interface {
 	AddProducer(Producer) OutgoingChannel
 	Wait() error
 }
+
+type Manager interface {
+	Channel
+	Interrupt()
+}

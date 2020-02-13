@@ -131,7 +131,3 @@ func New(ctx context.Context, size uint64) Chain {
 	q.AddProducer(defaultProducer{})
 	return q
 }
-
-type Receiver interface {
-	Recv() interface{}
-}

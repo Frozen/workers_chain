@@ -1,12 +1,11 @@
 package workers_chain
 
-import (
-	"sync/atomic"
-)
+import "sync/atomic"
 
 type IncomingChannel interface {
 	Receive() <-chan interface{}
 }
+
 type OutgoingChannel interface {
 	Send(value interface{})
 }
@@ -48,13 +47,14 @@ func newMultiChannel(incoming IncomingChannel, outgoing closableChannel) *multiC
 
 type channelImpl struct {
 	ch     chan interface{}
-	closed *uint32
+	closed chan struct{}
+	flag   uint32
 }
 
 func (a *channelImpl) Send(value interface{}) {
-	val := atomic.LoadUint32(a.closed)
-	if val == 0 {
-		a.ch <- value
+	select {
+	case <-a.closed:
+	case a.ch <- value:
 	}
 }
 
@@ -63,12 +63,16 @@ func (a *channelImpl) Receive() <-chan interface{} {
 }
 
 func (a *channelImpl) Close() {
-	if atomic.CompareAndSwapUint32(a.closed, 0, 1) {
+	if atomic.CompareAndSwapUint32(&a.flag, 0, 1) {
+		close(a.closed)
 		close(a.ch)
 	}
 }
 
 func newChannel(ch chan interface{}) *channelImpl {
-	x := uint32(0)
-	return &channelImpl{ch: ch, closed: &x}
+	return &channelImpl{
+		ch:     ch,
+		closed: make(chan struct{}),
+		flag:   0,
+	}
 }
