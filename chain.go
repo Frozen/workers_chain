@@ -15,10 +15,8 @@ type defaultProducer struct {
 }
 
 func (a defaultProducer) Produce(ctx context.Context, _ OutgoingChannel) error {
-	select {
-	case <-ctx.Done():
-		return nil
-	}
+	<-ctx.Done()
+	return nil
 }
 
 type chainImpl struct {
@@ -52,16 +50,14 @@ func (a *chainImpl) Wait() error {
 	}
 
 	for {
-		select {
-		case <-a.goroutineExitCh:
-			a.cancel()
-			a.mu.Lock()
-			a.running -= 1
-			running := a.running
-			a.mu.Unlock()
-			if running == 0 {
-				return <-a.err
-			}
+		<-a.goroutineExitCh
+		a.cancel()
+		a.mu.Lock()
+		a.running -= 1
+		running := a.running
+		a.mu.Unlock()
+		if running == 0 {
+			return <-a.err
 		}
 	}
 }

@@ -1,0 +1,3 @@
+vetcheck:
+	go vet ./...
+	golangci-lint run

@@ -47,7 +47,7 @@ func (w w2) Work(ch Channel) error {
 }
 
 func TestRunWithoutError(t *testing.T) {
-	ctx, _ := context.WithCancel(context.Background())
+	ctx := context.Background()
 	q := New(ctx, 64)
 
 	manager := q.AddWorker(w1{})
@@ -67,7 +67,7 @@ func TestRunWithoutError(t *testing.T) {
 }
 
 func TestRunWithError(t *testing.T) {
-	ctx, _ := context.WithCancel(context.Background())
+	ctx := context.Background()
 	q := New(ctx, 64)
 
 	manager := q.AddWorker(w1{})
@@ -82,7 +82,7 @@ func TestRunWithError(t *testing.T) {
 }
 
 func TestSecondWorkerReceiveMessage(t *testing.T) {
-	ctx, _ := context.WithCancel(context.Background())
+	ctx := context.Background()
 	q := New(ctx, 64)
 
 	manager1 := q.AddWorker(w1{})
@@ -104,7 +104,7 @@ func TestSecondWorkerReceiveMessage(t *testing.T) {
 }
 
 func TestSecondWorkerInterruptWithoutError(t *testing.T) {
-	ctx, _ := context.WithCancel(context.Background())
+	ctx := context.Background()
 	q := New(ctx, 64)
 
 	manager1 := q.AddWorker(w1{})
@@ -120,7 +120,7 @@ func TestSecondWorkerInterruptWithoutError(t *testing.T) {
 }
 
 func TestSecondWorkerInterruptWithError(t *testing.T) {
-	ctx, _ := context.WithCancel(context.Background())
+	ctx := context.Background()
 	q := New(ctx, 64)
 
 	manager1 := q.AddWorker(w1{})
@@ -147,7 +147,7 @@ func (p producer) Produce(_ context.Context, channel OutgoingChannel) error {
 }
 
 func TestWorkersWithProducer(t *testing.T) {
-	ctx, _ := context.WithCancel(context.Background())
+	ctx := context.Background()
 	q := New(ctx, 64)
 
 	q.AddWorker(w1{})
@@ -166,7 +166,7 @@ func recv(a interface{}, _ bool) interface{} {
 }
 
 func TestNoWorkersWait(t *testing.T) {
-	ctx, _ := context.WithCancel(context.Background())
+	ctx := context.Background()
 	q := New(ctx, 64)
 
 	require.NoError(t, q.Wait())
