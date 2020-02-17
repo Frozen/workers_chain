@@ -7,14 +7,14 @@ import (
 
 type worker struct {
 	w               Worker
-	incomingChannel closableChannel
-	outgoingChannel closableChannel
+	incomingChannel Channel
+	outgoingChannel Channel
 }
 
 type defaultProducer struct {
 }
 
-func (a defaultProducer) Produce(ctx context.Context, channel OutgoingChannel) error {
+func (a defaultProducer) Produce(ctx context.Context, _ OutgoingChannel) error {
 	select {
 	case <-ctx.Done():
 		return nil
@@ -29,10 +29,10 @@ type chainImpl struct {
 	goroutineExitCh chan struct{}
 
 	// producer output ch
-	producerOutputCh closableChannel
+	producerOutputCh Channel
 
 	// size of Channel
-	size    uint64
+	size    uint32
 	workers []worker
 	mu      sync.Mutex
 	// running workers count
@@ -70,7 +70,7 @@ func (a *chainImpl) AddProducer(p Producer) OutgoingChannel {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
-	workerChan := newMultiChannel(nil, a.producerOutputCh)
+	workerChan := newMultiChannel(NewChannel(1), a.producerOutputCh)
 
 	go func() {
 		defer func() {
@@ -88,13 +88,13 @@ func (a *chainImpl) AddProducer(p Producer) OutgoingChannel {
 func (a *chainImpl) AddWorker(w Worker) Manager {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	var incoming closableChannel
+	var incoming Channel
 	if len(a.workers) == 0 {
 		incoming = a.producerOutputCh
 	} else {
 		incoming = a.workers[len(a.workers)-1].outgoingChannel
 	}
-	outgoing := newChannel(make(chan interface{}, a.size))
+	outgoing := NewChannel(a.size)
 	wk := worker{
 		w:               w,
 		outgoingChannel: outgoing,
@@ -118,7 +118,7 @@ func (a *chainImpl) AddWorker(w Worker) Manager {
 	return newManager(wk)
 }
 
-func New(ctx context.Context, size uint64) Chain {
+func New(ctx context.Context, size uint32) Chain {
 	ctx, cancel := context.WithCancel(ctx)
 	q := &chainImpl{
 		size:             size,
@@ -126,7 +126,7 @@ func New(ctx context.Context, size uint64) Chain {
 		cancel:           cancel,
 		goroutineExitCh:  make(chan struct{}, 1),
 		err:              make(chan error, 1),
-		producerOutputCh: newChannel(make(chan interface{}, size)),
+		producerOutputCh: NewChannel(size),
 	}
 	q.AddProducer(defaultProducer{})
 	return q

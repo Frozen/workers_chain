@@ -4,12 +4,12 @@ type managerImpl struct {
 	w worker
 }
 
-func (a *managerImpl) Receive() <-chan interface{} {
+func (a *managerImpl) Receive() (interface{}, bool) {
 	return a.w.outgoingChannel.Receive()
 }
 
-func (a *managerImpl) Send(value interface{}) {
-	a.w.incomingChannel.Send(value)
+func (a *managerImpl) Send(value interface{}) bool {
+	return a.w.incomingChannel.Send(value)
 }
 
 func (a *managerImpl) Interrupt() {

@@ -5,7 +5,16 @@ import (
 )
 
 func TestChannelMultipleClose(t *testing.T) {
-	ch := newChannel(make(chan interface{}, 10))
+	ch := NewChannel(10)
 	ch.Close()
 	ch.Close()
+}
+
+func TestChannelUnlockOnClose(t *testing.T) {
+	ch := NewChannel(1)
+	go func() {
+		ch.Close()
+	}()
+	ch.Send(1)
+	ch.Send(2)
 }

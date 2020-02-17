@@ -17,6 +17,7 @@ type Chain interface {
 }
 
 type Manager interface {
-	Channel
+	Send(interface{}) bool
+	Receive() (interface{}, bool)
 	Interrupt()
 }
